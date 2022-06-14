@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.szs.dao.StudentDao" >
+
+    <!--分页查询-->
+    <select id="getStudentList" parameterType="Student" resultMap="StudentWithClass">
+        select * from s_student
+        <where>
+        	<if test="dorm_id==0">
+                and  dorm_id=0
+            </if>
+            <if test="stu_num!=null and stu_num!='' ">
+                and  stu_num like  '%${stu_num}%'
+            </if>
+            <if test="class_id!=null and class_id!=0">
+                and  class_id like  '%${class_id}%'
+            </if>
+            <if test="dorm_id!=null and dorm_id!=0">
+                and  dorm_id like  '%${dorm_id}%'
+            </if>           
+        </where>
+        ORDER BY  stu_id asc
+        limit #{currentPage},#{pageSize}
+    </select>
+    <resultMap type="Student" id="StudentWithClass">
+    	<id property="stu_id" column="stu_id"/>
+    	<result property="stu_num" column="stu_num"/>
+    	<result property="stu_name" column="stu_name"/>
+    	<result property="stu_sex" column="stu_sex"/>
+    	<result property="stu_date" column="stu_date"/>
+    	<result property="stu_phone" column="stu_phone"/>
+    	<association property="class1" column="class_id" javaType="Class"
+    	select="com.szs.dao.ClassDao.findClassById"></association>
+    	<association property="dorm" column="dorm_id" javaType="Dorm"
+    	select="com.szs.dao.DormDao.findDormById"></association>
+    </resultMap>
+    
+    <!--分页查询已分配宿舍学生-->
+    <select id="getSwitchStudentList" parameterType="Student" resultMap="StudentWithClass">
+        select * from s_student
+        <where>
+        	dorm_id !=0
+            <if test="stu_num!=null and stu_num!='' ">
+                and  stu_num like  '%${stu_num}%'
+            </if>
+            <if test="class_id!=null and class_id!=0">
+                and  class_id like  '%${class_id}%'
+            </if>
+            <if test="dorm_id!=null and dorm_id!=0">
+                and  dorm_id like  '%${dorm_id}%'
+            </if>  
+        </where>
+        ORDER BY  stu_id asc
+        limit #{currentPage},#{pageSize}
+    </select>
+    
+    <!--查询数据总数-->
+    <select id="totalCount"  resultType="Integer">
+        select count(stu_id) from s_student
+        <where>
+        	<if test="dorm_id==0">
+                and  dorm_id=0
+            </if>
+            <if test="stu_num!=null and stu_num!='' ">
+                and  stu_num like  '%${stu_num}%'
+            </if>
+            <if test="class_id!=null and class_id!=0">
+                and  class_id like  '%${class_id}%'
+            </if>
+            <if test="dorm_id!=null and dorm_id!=0">
+                and  dorm_id like  '%${dorm_id}%'
+            </if>
+        </where>
+    </select>
+    
+    <!--查询已分配宿舍学生总数-->
+    <select id="switchTotalCount"  resultType="Integer">
+        select count(stu_id) from s_student
+        <where>
+       		dorm_id !=0
+            <if test="stu_num!=null and stu_num!='' ">
+                and  stu_num like  '%${stu_num}%'
+            </if>
+            <if test="class_id!=null and class_id!=0">
+                and  class_id like  '%${class_id}%'
+            </if>
+            <if test="dorm_id!=null and dorm_id!=0">
+                and  dorm_id like  '%${dorm_id}%'
+            </if>
+        </where>
+    </select>
+    
+    <!--通过id删除学生信息-->
+    <delete id="deleteStudent" parameterType="Integer" >
+        delete from s_student where stu_id=#{stu_id}
+    </delete>
+    <!--添加学生信息-->
+    <insert id="addStudent" parameterType="Student" keyProperty="stu_id" useGeneratedKeys="true">
+        insert into s_student (stu_num,stu_name,stu_password,stu_sex,stu_date,stu_phone,class_id,dorm_id)
+        values(#{stu_num},#{stu_name},#{stu_password},#{stu_sex},#{stu_date},#{stu_phone},#{class_id},#{dorm_id})
+    </insert>
+
+
+    <select id="findStudentById"  parameterType="Integer" resultMap="StudentWithClass" >
+       select * from s_student where stu_id=#{stu_id}
+    </select>
+    
+    <select id="findOldDormStudentById"  parameterType="Integer" resultType="student">
+       select * from s_student where stu_id=#{stu_id}
+    </select>
+    
+    <!--修改学生信息-->
+    <update id="updateStudent" parameterType="Student">
+        update s_student
+        <set>
+            <if test="stu_num!=null and stu_num!=''">
+                stu_num=#{stu_num},
+            </if>
+            
+            <if test="stu_name !=null and stu_name !=''">
+                stu_name=#{stu_name},
+            </if>
+            <if test="stu_password !=null and stu_password !=''">
+                stu_password=#{stu_password},
+            </if>
+            <if test="stu_sex !=null and stu_sex !=''">
+                stu_sex=#{stu_sex},
+            </if>
+            <if test="stu_date !=null and stu_date !=''">
+                stu_date=#{stu_date},
+            </if>
+            <if test="stu_phone!=null and stu_phone!=''">
+                stu_phone=#{stu_phone},
+            </if>
+            <if test="class_id !=null and class_id !=''">
+                class_id=#{class_id},
+            </if>
+            <if test="dorm_id!=null and dorm_id!=''">
+                dorm_id=#{dorm_id}
+            </if>
+        </set>
+        where stu_id = #{stu_id}
+    </update>
+	
+	<!--将学生移出宿舍-->
+    <update id="removeStudentForDorm" parameterType="Integer">
+        update s_student
+		set
+        dorm_id=0
+        where stu_id = #{stu_id}
+    </update>
+	
+    <select id="getAll" resultType="Student">
+        select * from s_student;
+    </select>
+
+</mapper>

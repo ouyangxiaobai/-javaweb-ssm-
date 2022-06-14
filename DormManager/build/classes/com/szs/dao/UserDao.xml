@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper  
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- Mapper代理开发的规范
+1.Mapper接口的名称和对应的Mapper.xml映射文件的名称必须一致 
+2.Mapper.xml文件的namespace与Mapper接口的类路径相同（即接口文件和映射文件需要放在同一个包中）
+3.Mapper接口中的方法名和Mapper.xml中定义的每个执行语句的id相同
+4.Mapper接口中方法的输入参数类型和Mapper.xml中定义的每个sql的parameterType类型相同
+5.Mapper接口方法的输出参数类型要和Mapper.xml中定义的每个sql的resultType的类型相同--> 
+<mapper namespace="com.szs.dao.UserDao">  
+	<!-- 根据账号、密码和权限查询用户 -->
+	<select id="findUser" parameterType="String" resultType="user">
+		select * from s_user where user_name=#{username} and user_password=#{password} and user_access=#{access}
+	</select>
+	
+	<!--查询数据总数-->
+    <select id="totalCount"  resultType="Integer">
+        select count(*) from s_user
+    </select>
+	
+	<!--分页查询-->
+    <select id="getUserList" parameterType="User" resultType="user">
+        select * from s_user
+        ORDER BY  user_id asc
+        limit #{currentPage},#{pageSize}
+    </select>
+    
+    <!-- 查询所有用户 -->
+     <select id="getAll" resultType="user">
+        select * from s_user
+    </select>
+    
+    <!--添加管理员信息-->
+    <insert id="addUser" parameterType="User" keyProperty="user_id" useGeneratedKeys="true">
+        insert into s_user (user_name,user_password,user_phone,user_access)
+        values(#{user_name},#{user_password},#{user_phone},#{user_access})
+    </insert>
+
+    <!--通过id删除管理员信息-->
+    <delete id="deleteUser" parameterType="Integer" >
+        delete from s_user where user_id=#{user_id}
+    </delete>
+
+	<!--通过id查找管理员信息-->
+    <select id="findUserById"  parameterType="Integer" resultType="user" >
+        select * from s_user where user_id=#{user_id}
+    </select>
+
+
+    <!--修改管理员信息-->
+    <update id="updateUser" parameterType="User">
+        update s_user
+        <set>
+            <if test="user_name!=null and user_name !=''">
+                user_name=#{user_name},
+            </if>
+            <if test="user_password !=null and user_password !=''">
+                user_password=#{user_password},
+            </if>
+            <if test="user_phone !=null and user_phone !=''">
+                user_phone=#{user_phone},
+            </if>
+            <if test="user_access !=null and user_access !=''">
+                user_access=#{user_access},
+            </if>
+        </set>
+        where user_id = #{user_id}
+    </update>
+</mapper>

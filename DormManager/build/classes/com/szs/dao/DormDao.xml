@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper  
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- Mapper代理开发的规范
+1.Mapper接口的名称和对应的Mapper.xml映射文件的名称必须一致 
+2.Mapper.xml文件的namespace与Mapper接口的类路径相同（即接口文件和映射文件需要放在同一个包中）
+3.Mapper接口中的方法名和Mapper.xml中定义的每个执行语句的id相同
+4.Mapper接口中方法的输入参数类型和Mapper.xml中定义的每个sql的parameterType类型相同
+5.Mapper接口方法的输出参数类型要和Mapper.xml中定义的每个sql的resultType的类型相同--> 
+<mapper namespace="com.szs.dao.DormDao">  
+	
+	<!--查询数据总数-->
+    <select id="totalCount"  resultType="Integer">
+        select count(dorm_id) from s_dorm
+       <where>
+            <if test="dorm_num!=null and dorm_num!='' ">
+                and  dorm_num like  '%${dorm_num}%'
+            </if>
+            <if test="dorm_empty!=null and dorm_empty!=''">
+                and  dorm_empty like  '%${dorm_empty}%'
+            </if>
+            <if test="build_id!=null and build_id!=0">
+                and  build_id like  '%${build_id}%'
+            </if>
+        </where>
+    </select>
+	
+	<!--分页查询-->
+    <select id="getDormList" parameterType="Dorm" resultMap="DormWithBuild">
+        select * from s_dorm
+        <where>
+            <if test="dorm_num!=null and dorm_num!='' ">
+                and  dorm_num like  '%${dorm_num}%'
+            </if>
+            <if test="dorm_empty!=null and dorm_empty!=''">
+                and  dorm_empty like  '%${dorm_empty}%'
+            </if>
+            <if test="build_id!=null and build_id!=0">
+                and  build_id like  '%${build_id}%'
+            </if>
+        </where>
+        ORDER BY  dorm_id asc
+        limit #{currentPage},#{pageSize}
+    </select>
+    <resultMap type="Dorm" id="DormWithBuild">
+    	<id property="dorm_id" column="dorm_id"/>
+    	<result property="dorm_num" column="dorm_num"/>
+    	<result property="dorm_capacity" column="dorm_capacity"/>
+    	<result property="dorm_empty" column="dorm_empty"/>
+    	<association property="build" column="build_id" javaType="Build"
+    	select="com.szs.dao.BuildDao.findBuildById"></association>
+    </resultMap>
+    
+    <!-- 查询所有宿舍 -->
+     <select id="getAll" resultType="dorm">
+        select * from s_dorm
+    </select>
+    
+    <!--添加宿舍-->
+    <insert id="addDorm" parameterType="Dorm" keyProperty="dorm_id" useGeneratedKeys="true">
+        insert into s_dorm (dorm_num,dorm_capacity,dorm_empty,build_id)
+        values(#{dorm_num},#{dorm_capacity},#{dorm_empty},#{build_id})
+    </insert>
+
+    <!--通过id删除宿舍信息-->
+    <delete id="deleteDorm" parameterType="Integer" >
+        delete from s_dorm where dorm_id=#{dorm_id}
+    </delete>
+
+	<!--通过id查找宿舍信息-->
+    <select id="findDormById"  parameterType="Integer" resultMap="DormWithBuild">
+        select * from s_dorm where dorm_id=#{dorm_id}
+    </select>
+
+
+    <!--修改宿舍信息-->
+    <update id="updateDorm" parameterType="Dorm">
+        update s_dorm
+        <set>
+            <if test="dorm_num != null and dorm_num !=''">
+                dorm_num=#{dorm_num},
+            </if>
+            <if test="dorm_capacity != null and dorm_capacity !=''">
+                dorm_capacity=#{dorm_capacity},
+            </if>
+            <if test="dorm_empty != null and dorm_empty !=''">
+                dorm_empty=#{dorm_empty},
+            </if>
+            <if test="build_id != null and build_id !=''">
+                build_id=#{build_id}
+            </if>
+        </set>
+        where dorm_id = #{dorm_id}
+    </update>
+    
+    <!--修改宿舍空床信息-->
+    <update id="updateEmptyDorm" parameterType="Integer">
+        update s_dorm
+        set dorm_empty=dorm_capacity-(
+        select count(*) from s_student where dorm_id = #{dorm_id})
+        where dorm_id = #{dorm_id}
+    </update>
+    
+    <!--修改宿舍空床信息-->
+    <update id="updateOldEmptyDorm" parameterType="Integer">
+        update s_dorm
+        set dorm_empty=dorm_empty+1
+        where dorm_id = #{dorm_id}
+    </update>
+</mapper>

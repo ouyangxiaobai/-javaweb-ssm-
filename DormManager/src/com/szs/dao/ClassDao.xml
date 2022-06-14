@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper  
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- Mapper代理开发的规范
+1.Mapper接口的名称和对应的Mapper.xml映射文件的名称必须一致 
+2.Mapper.xml文件的namespace与Mapper接口的类路径相同（即接口文件和映射文件需要放在同一个包中）
+3.Mapper接口中的方法名和Mapper.xml中定义的每个执行语句的id相同
+4.Mapper接口中方法的输入参数类型和Mapper.xml中定义的每个sql的parameterType类型相同
+5.Mapper接口方法的输出参数类型要和Mapper.xml中定义的每个sql的resultType的类型相同--> 
+<mapper namespace="com.szs.dao.ClassDao">  
+	
+	<!--查询数据总数-->
+    <select id="totalCount"  resultType="Integer">
+        select count(*) from s_class
+    </select>
+	
+	<!--分页查询-->
+    <select id="getClassList" parameterType="Class" resultType="class">
+        select * from s_class
+        ORDER BY  class_id asc
+        limit #{currentPage},#{pageSize}
+    </select>
+    
+    <!-- 查询所有班级 -->
+     <select id="getAll" resultType="class">
+        select * from s_class
+    </select>
+    
+    <!--添加班级-->
+    <insert id="addClass" parameterType="Class" keyProperty="class_id" useGeneratedKeys="true">
+        insert into s_class (class_name,class_teacher,class_phone)
+        values(#{class_name},#{class_teacher},#{class_phone})
+    </insert>
+
+    <!--通过id删除班级信息-->
+    <delete id="deleteClass" parameterType="Integer" >
+        delete from s_class where class_id=#{class_id}
+    </delete>
+
+	<!--通过id查找班级信息-->
+    <select id="findClassById"  parameterType="Integer" resultType="class" >
+        select * from s_class where class_id=#{class_id}
+    </select>
+
+
+    <!--修改班级信息-->
+    <update id="updateClass" parameterType="Class">
+        update s_class
+        <set>
+            <if test="class_name != null and class_name !=''">
+                class_name=#{class_name},
+            </if>
+            <if test="class_teacher != null and class_teacher !=''">
+                class_teacher=#{class_teacher},
+            </if>
+            <if test="class_phone != null and class_phone !=''">
+                class_phone=#{class_phone},
+            </if>
+        </set>
+        where class_id=#{class_id}
+    </update>
+</mapper>

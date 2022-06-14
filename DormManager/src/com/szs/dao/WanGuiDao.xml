@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper  
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- Mapper代理开发的规范
+1.Mapper接口的名称和对应的Mapper.xml映射文件的名称必须一致 
+2.Mapper.xml文件的namespace与Mapper接口的类路径相同（即接口文件和映射文件需要放在同一个包中）
+3.Mapper接口中的方法名和Mapper.xml中定义的每个执行语句的id相同
+4.Mapper接口中方法的输入参数类型和Mapper.xml中定义的每个sql的parameterType类型相同
+5.Mapper接口方法的输出参数类型要和Mapper.xml中定义的每个sql的resultType的类型相同--> 
+<mapper namespace="com.szs.dao.WanGuiDao">  
+	
+	<!--查询数据总数-->
+    <select id="totalCount"  resultType="Integer">
+        select count(*) from s_wangui
+        <where>
+            <if test="dorm_id!=null and dorm_id!='' ">
+                and  dorm_id like  '%${dorm_id}%'
+            </if>
+            <if test="stu_id!=null and stu_id!=''">
+                and  stu_id like  '%${stu_id}%'
+            </if>
+        </where>
+    </select>
+	
+	<!--分页查询-->
+	<select id="getWanGuiList" parameterType="WanGui" resultMap="DormWithWangui">
+        select * from s_wangui
+        <where>
+            <if test="dorm_id!=null and dorm_id!='' ">
+                and  dorm_id like  '%${dorm_id}%'
+            </if>
+            <if test="stu_id!=null and stu_id!=''">
+                and  stu_id like  '%${stu_id}%'
+            </if>
+        </where>
+        ORDER BY  wg_id asc
+        limit #{currentPage},#{pageSize}
+    </select>
+    <resultMap type="WanGui" id="DormWithWangui">
+    	<id property="wg_id" column="wg_id"/>
+    	<result property="wg_cause" column="wg_cause"/>
+    	<result property="wg_date" column="wg_date"/>
+    	<association property="dorm" column="dorm_id" javaType="Dorm"
+    	select="com.szs.dao.DormDao.findDormById"></association>
+    	<association property="student" column="stu_id" javaType="Student"
+    	select="com.szs.dao.StudentDao.findStudentById"></association>  	
+    </resultMap>
+<!--     <select id="getBuildList" parameterType="Build" resultMap="BuildwithUser">
+        select * from s_build
+        ORDER BY  build_id asc
+        limit #{currentPage},#{pageSize}
+    </select>
+    <resultMap type="Build" id="BuildwithUser">
+    	<id property="build_id" column="build_id"/>
+    	<result property="build_name" column="build_name"/>
+    	<association property="user" column="user_id" javaType="User"
+    	select="com.szs.dao.UserDao.findUserById"></association>
+    </resultMap> -->
+    
+    <!-- 查询所有晚归记录 -->
+     <select id="getAll" resultType="wangui">
+        select * from s_wangui
+    </select>
+    
+    <!--添加晚归记录-->
+    <insert id="addWanGui" parameterType="WanGui" keyProperty="wg_id" useGeneratedKeys="true">
+        insert into s_wangui (dorm_id,stu_id,wg_cause,wg_date)
+        values(#{dorm_id},#{stu_id},#{wg_cause},#{wg_date})
+    </insert>
+
+    <!--通过id删除晚归记录信息-->
+    <delete id="deleteWanGui" parameterType="Integer" >
+        delete from s_wangui where wg_id=#{wg_id}
+    </delete>
+
+	<!--通过id查找晚归记录信息-->
+   	<select id="findWanGuiById"  parameterType="Integer" resultType="wangui" >
+        select * from s_wangui where wg_id=#{wg_id}
+    </select>
+     <!-- <select id="findBuildById"  parameterType="Integer" resultMap="BuildwithUserById" >
+        select * from s_build,s_user where s_build.build_id = s_user.user_id and build_id=#{build_id}
+    </select>
+	<resultMap type="Build" id="BuildwithUserById">
+    	<id property="build_id" column="build_id"/>
+    	<result property="build_name" column="build_name"/>
+    	<association property="user" column="user_id" javaType="User"
+    	select="com.szs.dao.UserDao.findUserById"></association>
+    </resultMap> -->
+
+    <!--修改晚归记录信息-->
+    <update id="updateWanGui" parameterType="WanGui">
+        update s_wangui
+        <set>
+            <if test="dorm_id !=null and dorm_id !=''">
+                dorm_id=#{dorm_id},
+            </if>
+            <if test="stu_id !=null and stu_id !=''">
+                stu_id=#{stu_id},
+            </if>
+            <if test="wg_cause !=null and wg_cause !=''">
+                wg_cause=#{wg_cause},
+            </if>
+            <if test="wg_date !=null and wg_date !=''">
+                wg_date=#{wg_date}
+            </if>
+        </set>
+        where wg_id = #{wg_id}
+    </update>
+</mapper>

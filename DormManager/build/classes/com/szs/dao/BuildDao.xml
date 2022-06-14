@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper  
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- Mapper代理开发的规范
+1.Mapper接口的名称和对应的Mapper.xml映射文件的名称必须一致 
+2.Mapper.xml文件的namespace与Mapper接口的类路径相同（即接口文件和映射文件需要放在同一个包中）
+3.Mapper接口中的方法名和Mapper.xml中定义的每个执行语句的id相同
+4.Mapper接口中方法的输入参数类型和Mapper.xml中定义的每个sql的parameterType类型相同
+5.Mapper接口方法的输出参数类型要和Mapper.xml中定义的每个sql的resultType的类型相同--> 
+<mapper namespace="com.szs.dao.BuildDao">  
+	
+	<!--查询数据总数-->
+    <select id="totalCount"  resultType="Integer">
+        select count(*) from s_build
+    </select>
+	
+	<!--分页查询-->
+<!--     <select id="getBuildList" parameterType="Build" resultType="build">
+        select * from s_build
+        ORDER BY  build_id asc
+        limit #{currentPage},#{pageSize}
+    </select> -->
+    <select id="getBuildList" parameterType="Build" resultMap="BuildwithUser">
+        select * from s_build
+        ORDER BY  build_id asc
+        limit #{currentPage},#{pageSize}
+    </select>
+    <resultMap type="Build" id="BuildwithUser">
+    	<id property="build_id" column="build_id"/>
+    	<result property="build_name" column="build_name"/>
+    	<association property="user" column="user_id" javaType="User"
+    	select="com.szs.dao.UserDao.findUserById"></association>
+    </resultMap>
+    
+    <!-- 查询所有公寓 -->
+     <select id="getAll" resultType="build">
+        select * from s_build
+    </select>
+    
+    <!--添加公寓-->
+    <insert id="addBuild" parameterType="Build" keyProperty="build_id" useGeneratedKeys="true">
+        insert into s_build (build_name,user_id)
+        values(#{build_name},#{user_id})
+    </insert>
+
+    <!--通过id删除公寓信息-->
+    <delete id="deleteBuild" parameterType="Integer" >
+        delete from s_build where build_id=#{build_id}
+    </delete>
+
+	<!--通过id查找公寓信息-->
+   <!--  <select id="findBuildById"  parameterType="Integer" resultType="build" >
+        select * from s_build where build_id=#{build_id}
+    </select> -->
+     <select id="findBuildById"  parameterType="Integer" resultMap="BuildwithUserById" >
+        select * from s_build,s_user where s_build.build_id = s_user.user_id and build_id=#{build_id}
+    </select>
+	<resultMap type="Build" id="BuildwithUserById">
+    	<id property="build_id" column="build_id"/>
+    	<result property="build_name" column="build_name"/>
+    	<association property="user" column="user_id" javaType="User"
+    	select="com.szs.dao.UserDao.findUserById"></association>
+    </resultMap>
+
+    <!--修改公寓信息-->
+    <update id="updateBuild" parameterType="Build">
+        update s_build
+        <set>
+            <if test="build_name!=null and build_name !=''">
+                build_name=#{build_name},
+            </if>
+            <if test="user_id !=null and user_id !=''">
+                user_id=#{user_id}
+            </if>
+        </set>
+        where build_id = #{build_id}
+    </update>
+    
+    <!-- <select id="findAllBuildAndDorm" parameterType="Integer" resultMap="BuildingAndDomitory">
+    	select d.* ,b.* from s_dorm d,s_build b where b.build_id=d.build_id
+    </select>
+    <resultMap id="BuildingAndDomitory" type="Build">
+		<id column="build_id" property="build_id"/>
+		<result column="build_name" property="build_name"/>
+		<result column="user_id" property="user_id"/>
+		多对多关联映射 ：collection
+		<collection property="dormlist" ofType="Dorm">
+			<id column="dorm_id" property="dorm_id"/>
+			<result column="dorm_num" property="dorm_num"/>
+			<result column="dorm_capacity" property="dorm_capacity"/>
+			<result column="dorm_empty" property="dorm_empty"/>
+			<result column="build_id" property="build_id"/>
+		</collection>
+	</resultMap> -->
+</mapper>
